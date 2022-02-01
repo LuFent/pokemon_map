@@ -8,7 +8,15 @@ class Pokemon(models.Model):
     def __str__(self):
         return self.title
 
+
 class PokemonEntity(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
-    #pokemon_type = models.ForeignKey(Pokemon, on_delete=models.CASCADE)
+    pokemon_type = models.ForeignKey(Pokemon, on_delete=models.CASCADE, default=None)
+    appeared_at = models.DateField(default=None)
+    disappeared_at = models.DateField(default=None)
+    level = models.IntegerField(default=0)
+    health = models.IntegerField(default=0)
+    strength = models.IntegerField(default=0)
+    defence = models.IntegerField(default=0)
+    stamina = models.IntegerField(default=0)
