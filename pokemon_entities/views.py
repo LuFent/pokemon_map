@@ -2,8 +2,9 @@ import folium
 import json
 
 from .models import Pokemon, PokemonEntity
-from django.http import HttpResponseNotFound, HttpRequest
+from django.http import HttpResponseNotFound, HttpRequest, HttpResponseRedirect
 from django.shortcuts import render
+from django.core.exceptions import ObjectDoesNotExist
 
 
 MOSCOW_CENTER = [55.751244, 37.618423]
@@ -37,7 +38,7 @@ def show_all_pokemons(request):
         else:
             image_path = None
 
-        for pokemon_entity in PokemonEntity.objects.filter(pokemon_type=pokemon):
+        for pokemon_entity in pokemon.entities.all():
             add_pokemon(
                 folium_map, pokemon_entity.latitude,
                 pokemon_entity.longitude,
@@ -49,7 +50,7 @@ def show_all_pokemons(request):
         if pokemon.img:
             image_path = pokemon.img.url
         else:
-            image_path = None
+            image_path = "/media/bulbazavr.png"
 
         pokemons_on_page.append({
             'pokemon_id': pokemon.id,
@@ -64,7 +65,10 @@ def show_all_pokemons(request):
 
 
 def show_pokemon(request, pokemon_id):
-    requested_pokemon = Pokemon.objects.get(id=pokemon_id)
+    try:
+        requested_pokemon = Pokemon.objects.get(id=pokemon_id)
+    except ObjectDoesNotExist:
+        return HttpResponseRedirect('/pokemon/1/')
 
     if requested_pokemon.img:
         image_path = request.build_absolute_uri(requested_pokemon.img.url)
@@ -72,24 +76,24 @@ def show_pokemon(request, pokemon_id):
         image_path = None
 
     folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)
-    for pokemon_entity in PokemonEntity.objects.filter(pokemon_type=requested_pokemon):
+    for pokemon_entity in requested_pokemon.entities.all():
         add_pokemon(
             folium_map, pokemon_entity.latitude,
             pokemon_entity.longitude,
             image_path)
 
     if requested_pokemon.previous_evolution:
-        previous_pokemon = {"img_url": request.build_absolute_uri(requested_pokemon.previous_evolution.img.url),
-                            "title_ru": requested_pokemon.previous_evolution.title_ru,
-                            "pokemon_id": requested_pokemon.previous_evolution.id}
+        previous_pokemon = {'img_url': request.build_absolute_uri(requested_pokemon.previous_evolution.img.url),
+                            'title_ru': requested_pokemon.previous_evolution.title_ru,
+                            'pokemon_id': requested_pokemon.previous_evolution.id}
     else:
         previous_pokemon = None
 
     try:
         next_pokemon_obj = requested_pokemon.next_evolution.get()
-        next_pokemon = {"img_url": request.build_absolute_uri(next_pokemon_obj.img.url),
-                        "title_ru": next_pokemon_obj.title_ru,
-                        "pokemon_id": next_pokemon_obj.id}
+        next_pokemon = {'img_url': request.build_absolute_uri(next_pokemon_obj.img.url),
+                        'title_ru': next_pokemon_obj.title_ru,
+                        'pokemon_id': next_pokemon_obj.id}
 
     except Pokemon.DoesNotExist:
         next_pokemon = None
