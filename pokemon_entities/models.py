@@ -6,9 +6,9 @@ class Pokemon(models.Model):
     title_jp = models.CharField('Название покемона на японском', max_length=200)
     title_en = models.CharField('Название покемона на английском', max_length=200)
     img = models.ImageField('Изображение покемона', null=True)
-    description = models.TextField('Описание покемона на русском', default='')
+    description = models.TextField('Описание покемона на русском')
     previous_evolution = models.ForeignKey('self',
-                                           on_delete=models.CASCADE,
+                                           on_delete=models.SET_NULL,
                                            null=True,
                                            verbose_name='Из какого вида эволюционировал',
                                            related_name='next_evolution',

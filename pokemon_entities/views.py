@@ -36,7 +36,7 @@ def show_all_pokemons(request):
         if pokemon.img:
             image_path = pokemon.img.url
         else:
-            image_path = None
+            image_path = DEFAULT_IMAGE_URL
 
         for pokemon_entity in pokemon.entities.all():
             add_pokemon(
@@ -50,7 +50,7 @@ def show_all_pokemons(request):
         if pokemon.img:
             image_path = pokemon.img.url
         else:
-            image_path = "/media/bulbazavr.png"
+            image_path = DEFAULT_IMAGE_URL
 
         pokemons_on_page.append({
             'pokemon_id': pokemon.id,
@@ -67,13 +67,13 @@ def show_all_pokemons(request):
 def show_pokemon(request, pokemon_id):
     try:
         requested_pokemon = Pokemon.objects.get(id=pokemon_id)
-    except ObjectDoesNotExist:
-        return HttpResponseRedirect('/pokemon/1/')
+    except Pokemon.DoesNotExist:
+        return HttpResponseNotFound('Покемона с таким id не найдено')
 
     if requested_pokemon.img:
         image_path = request.build_absolute_uri(requested_pokemon.img.url)
     else:
-        image_path = None
+        image_path = DEFAULT_IMAGE_URL
 
     folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)
     for pokemon_entity in requested_pokemon.entities.all():
